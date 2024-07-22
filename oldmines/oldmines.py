@@ -7,7 +7,7 @@ from utils import Box, Mines
 
 class App:
     def __init__(self, debug: bool = False):
-        pyxel.init(150, 180, title="OldMines")
+        pyxel.init(150, 180, title="Oldmines")
         pyxel.mouse(True)
         self.debug = debug
         self.scoreoffset = 15
@@ -41,6 +41,19 @@ class App:
         self.mouse_pos_x = 0
         self.mouse_pos_y = 0
 
+    def clickhandler(self):
+        self.mouse_pos_x = pyxel.mouse_x
+        self.mouse_pos_y = pyxel.mouse_y
+
+        box_x = bisect.bisect_left(self.box_xlim, self.mouse_pos_x) - 1
+        box_y = bisect.bisect_left(self.box_ylim, self.mouse_pos_y) - 1
+
+        if self.box_xlim[box_x] < self.mouse_pos_x < self.boxwidth + self.box_xlim[box_x]:
+            if self.box_ylim[box_y] < self.mouse_pos_y < self.boxheight + self.box_ylim[box_y]:
+                return box_x, box_y
+
+        return None, None
+
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
@@ -52,32 +65,18 @@ class App:
             self.time_elapsed = int(time.time() - self.start_time)
 
             if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT, hold=5, repeat=1):
-                self.mouse_pos_x = pyxel.mouse_x
-                self.mouse_pos_y = pyxel.mouse_y
-
-                box_x = bisect.bisect_left(self.box_xlim, self.mouse_pos_x) - 1
-                box_y = bisect.bisect_left(self.box_ylim, self.mouse_pos_y) - 1
-
-                if self.box_xlim[box_x] < self.mouse_pos_x < self.boxwidth + self.box_xlim[box_x]:
-                    if self.box_ylim[box_y] < self.mouse_pos_y < self.boxheight + self.box_ylim[box_y]:
-                        if self.debug:
-                            print("leftclick", box_x, box_y)
-
-                        self.m.click((box_x, box_y))
+                box_x, box_y = self.clickhandler()
+                if box_x is not None:
+                    self.m.click((box_x, box_y))
+                    if self.debug:
+                        print("leftclick", box_x, box_y)
 
             if pyxel.btnp(pyxel.MOUSE_BUTTON_RIGHT, hold=5, repeat=1):
-                self.mouse_pos_x = pyxel.mouse_x
-                self.mouse_pos_y = pyxel.mouse_y
-
-                box_x = bisect.bisect_left(self.box_xlim, self.mouse_pos_x) - 1
-                box_y = bisect.bisect_left(self.box_ylim, self.mouse_pos_y) - 1
-
-                if self.box_xlim[box_x] < self.mouse_pos_x < self.boxwidth + self.box_xlim[box_x]:
-                    if self.box_ylim[box_y] < self.mouse_pos_y < self.boxheight + self.box_ylim[box_y]:
-                        if self.debug:
-                            print("rightclick", box_x, box_y)
-
-                        self.m.flag((box_x, box_y))
+                box_x, box_y = self.clickhandler()
+                if box_x is not None:
+                    self.m.flag((box_x, box_y))
+                    if self.debug:
+                        print("rightclick", box_x, box_y)
 
     def draw_box(self, x, y, col):
         pyxel.rect(x, y, self.boxwidth, self.boxheight, col)
@@ -104,7 +103,6 @@ class App:
                 self.draw_box(self.boxes[box][0], self.boxes[box][1], 7)
 
         if self.m.haswon:
-            # do something spl
             f = f"YAY!"
             pyxel.text(10, 4, f, 1)
             pyxel.text(9, 4, f, 10)
@@ -116,6 +114,10 @@ class App:
         s = f"TIME {self.time_elapsed:>4}"
         pyxel.text(100, 4, s, 1)
         pyxel.text(99, 4, s, 7)
+
+        if not self.m.playable:
+            msg = "Press R to reset."
+            pyxel.text(10, 170, msg, pyxel.frame_count % 20)
 
 
 App()
