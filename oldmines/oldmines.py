@@ -2,11 +2,11 @@ import bisect
 import pyxel
 import time
 
-from utils import Box, Mines
+from utils import Mines
 
 
 class App:
-    def __init__(self, debug: bool = False):
+    def __init__(self, debug: bool = False) -> None:
         self.debug = debug
 
         # ui params
@@ -33,7 +33,7 @@ class App:
         self.reset()
         pyxel.run(self.update, self.draw)
 
-    def _init_boxes(self):
+    def _init_boxes(self) -> None:
         self.boxes = {}
         self.box_xlim = []
         self.box_ylim = []
@@ -50,14 +50,14 @@ class App:
                     self.box_ylim[j]
                 )
 
-    def reset(self):
+    def reset(self) -> None:
         self.m = Mines(self.ndim, self.mines)
         self.start_time = time.time()
         self.time_elapsed = 0
         self.mouse_pos_x = 0
         self.mouse_pos_y = 0
 
-    def clickhandler(self):
+    def clickhandler(self) -> tuple[int | None, int | None]:
         self.mouse_pos_x = pyxel.mouse_x
         self.mouse_pos_y = pyxel.mouse_y
 
@@ -70,7 +70,7 @@ class App:
 
         return None, None
 
-    def update(self):
+    def update(self) -> None:
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
 
@@ -94,13 +94,13 @@ class App:
                     if self.debug:
                         print("rightclick", box_x, box_y)
 
-    def draw_box(self, x, y, col):
+    def draw_box(self, x: int | float, y: int | float, col: int) -> None:
         pyxel.rect(x, y, self.boxwidth, self.boxheight, col)
 
-    def draw_empty_box(self, x, y, col):
+    def draw_empty_box(self, x: int | float, y: int | float, col: int) -> None:
         pyxel.rectb(x, y, self.boxwidth, self.boxheight, col)
 
-    def draw(self):
+    def draw(self) -> None:
         pyxel.cls(0)
         for box in self.boxes:
             if self.m.get_layout()[(box[0], box[1])].isopen:
@@ -108,13 +108,22 @@ class App:
                     self.boxes[box][0], self.boxes[box][1], 7 if not self.m.haswon else 10)
 
                 if self.m.get_layout()[(box[0], box[1])].value > 0:
-                    pyxel.text(self.boxes[box][0] + self.boxwidth/self.text_adjust_x, self.boxes[box][1] + self.boxheight/self.text_adjust_y, self._symbolmap[self.m.get_layout()[
-                        (box[0], box[1])].value], self.m.get_layout()[(box[0], box[1])].value+1)
+                    pyxel.text(
+                        self.boxes[box][0] + self.boxwidth/self.text_adjust_x,
+                        self.boxes[box][1] + self.boxheight/self.text_adjust_y,
+                        self._symbolmap[self.m.get_layout()[
+                            (box[0], box[1])].value],
+                        self.m.get_layout()[(box[0], box[1])].value+1
+                    )
             elif self.m.get_layout()[(box[0], box[1])].isflagged:
                 self.draw_empty_box(
                     self.boxes[box][0], self.boxes[box][1], 7)
-                pyxel.text(self.boxes[box][0] + self.boxwidth/self.text_adjust_x, self.boxes[box][1] + self.boxheight/self.text_adjust_y,
-                           "F", 9)
+                pyxel.text(
+                    self.boxes[box][0] + self.boxwidth/self.text_adjust_x,
+                    self.boxes[box][1] + self.boxheight/self.text_adjust_y,
+                    "F",
+                    9
+                )
             else:
                 self.draw_box(self.boxes[box][0], self.boxes[box][1], 7)
 

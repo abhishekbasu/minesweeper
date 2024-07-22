@@ -79,17 +79,17 @@ class Mines:
         self.layout[loc].isopen = True
         self.boxes_left_to_open -= 1
 
-        if self.layout[loc].isflagged:
-            self.layout[loc].isflagged = False
-            self.flags_available += 1
-
         if self.layout[loc] == 9:
             self.playable = False
             for loc in self.layout:
                 self.layout[loc].isopen = True
             return
 
-        elif self.layout[loc] == 0:
+        if self.layout[loc].isflagged:
+            self.layout[loc].isflagged = False
+            self.flags_available += 1
+
+        if self.layout[loc] == 0:
             for neighbor in self._neighbors:
                 neighbor_loc = (loc[0]+neighbor[0], loc[1]+neighbor[1])
                 if neighbor_loc in self.layout:
