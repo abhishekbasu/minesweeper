@@ -4,6 +4,7 @@ import random
 class Box:
     value: int
     isopen: bool
+    isflagged: bool
 
     def __init__(self, value: int, isopen: bool = False, isflagged: bool = False):
         self.value = value
@@ -22,6 +23,8 @@ class Box:
     def __str__(self) -> str:
         if self.isopen:
             return f"[{self.value}]"
+        if self.isflagged:
+            return f"[F]"
         else:
             return f"[X]"
 
@@ -29,6 +32,7 @@ class Box:
 class Mines:
     ndim: int
     nmines: int
+    flags_available: int
     playable: bool
     haswon: bool
     boxes_left_to_open: int
@@ -45,7 +49,7 @@ class Mines:
         self.boxes_left_to_open = ndim**2
         self.layout = self._generate_layout()
 
-    def _generate_layout(self):
+    def _generate_layout(self) -> dict[tuple[int, int], Box]:
         layout = {(i, j): Box(0) for i in range(self.ndim)
                   for j in range(self.ndim)}
         mines = random.sample(list(layout.keys()), k=self.nmines)
@@ -68,7 +72,7 @@ class Mines:
 
         return layout
 
-    def _open(self, loc):
+    def _open(self, loc) -> None:
         if self.layout[loc].isopen:
             return
 
@@ -95,7 +99,7 @@ class Mines:
             self.playable = False
             self.haswon = True
 
-    def click(self, loc) -> int:
+    def click(self, loc: tuple[int, int]) -> int:
         if (not self.playable) or (loc not in self.layout):
             return -1
         elif self.layout[loc].isopen or self.layout[loc].isflagged:
@@ -104,7 +108,7 @@ class Mines:
             self._open(loc)
             return 1
 
-    def flag(self, loc) -> int:
+    def flag(self, loc: tuple[int, int]) -> int:
         if (not self.playable) or (loc not in self.layout):
             return -1
         elif self.layout[loc].isopen or not self.flags_available:
@@ -118,11 +122,11 @@ class Mines:
                 self.flags_available -= 1
             return 1
 
-    def get_layout(self) -> dict:
+    def get_layout(self) -> dict[tuple[int, int], Box]:
         return self.layout
 
     def __repr__(self) -> str:
-        return f"Mines({self.ndim}, {self.nmines}, {self.playable}, {self.haswon})"
+        return f"Mines({self.ndim}, {self.nmines}, {self.flags_available}, {self.playable}, {self.haswon})"
 
     def __str__(self) -> str:
         _return_str = ""
