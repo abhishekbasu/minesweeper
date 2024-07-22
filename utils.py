@@ -5,9 +5,10 @@ class Box:
     value: int
     isopen: bool
 
-    def __init__(self, value: int, isopen: bool = False):
+    def __init__(self, value: int, isopen: bool = False, isflagged: bool = False):
         self.value = value
         self.isopen = isopen
+        self.isflagged = isflagged
 
     def __repr__(self) -> str:
         return f"Box({self.value}, {self.isopen})"
@@ -38,6 +39,7 @@ class Mines:
     def __init__(self, ndim: int, nmines: int) -> None:
         self.ndim = ndim
         self.nmines = nmines
+        self.flags_available = nmines
         self.playable = True
         self.haswon = False
         self.boxes_left_to_open = ndim**2
@@ -73,8 +75,14 @@ class Mines:
         self.layout[loc].isopen = True
         self.boxes_left_to_open -= 1
 
+        if self.layout[loc].isflagged:
+            self.layout[loc].isflagged = False
+            self.flags_available += 1
+
         if self.layout[loc] == 9:
             self.playable = False
+            for loc in self.layout:
+                self.layout[loc].isopen = True
             return
 
         elif self.layout[loc] == 0:
@@ -90,10 +98,24 @@ class Mines:
     def click(self, loc) -> int:
         if (not self.playable) or (loc not in self.layout):
             return -1
-        elif self.layout[loc].isopen:
+        elif self.layout[loc].isopen or self.layout[loc].isflagged:
             return 0
         else:
             self._open(loc)
+            return 1
+
+    def flag(self, loc) -> int:
+        if (not self.playable) or (loc not in self.layout):
+            return -1
+        elif self.layout[loc].isopen or not self.flags_available:
+            return 0
+        else:
+            if self.layout[loc].isflagged:
+                self.layout[loc].isflagged = False
+                self.flags_available += 1
+            else:
+                self.layout[loc].isflagged = True
+                self.flags_available -= 1
             return 1
 
     def get_layout(self) -> dict:
